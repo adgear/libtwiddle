@@ -3,8 +3,8 @@
 #include <string.h>
 #include <x86intrin.h>
 
-#include <twiddle/hash/metrohash.h>
 #include <twiddle/hyperloglog/hyperloglog.h>
+#include <twiddle/utils/hash.h>
 
 #include "../macrology.h"
 #include "hyperloglog_simd.c"
@@ -92,15 +92,15 @@ void tw_hyperloglog_add(struct tw_hyperloglog *hll, const void *key,
     return;
   }
 
-  const uint64_t hash = tw_metrohash_64(TW_HLL_DEFAULT_SEED, key, key_size);
+  const tw_uint128_t hash =
+      tw_metrohash_128(TW_HLL_DEFAULT_SEED, key, key_size);
   const uint8_t precision = hll->precision;
-  const uint32_t bucket_idx = hash >> (64 - precision);
-  const uint8_t leading_zeros = (__builtin_clzll(hash << precision |
-                                                 (1 << (precision - 1))) +
-                                 1),
-                old_val = hll->registers[bucket_idx];
-  hll->registers[bucket_idx] =
-      (leading_zeros > old_val) ? leading_zeros : old_val;
+
+  const uint32_t register_idx = hash.l >> (64 - precision);
+
+  const uint8_t leading_zeros = __builtin_clzll(hash.h) + 1;
+  const uint8_t cur_leading_zeros = hll->registers[register_idx];
+  hll->registers[register_idx] = tw_max(leading_zeros, cur_leading_zeros);
 }
 
 extern double estimate(uint8_t precision, uint32_t n_zeros, float inverse_sum);

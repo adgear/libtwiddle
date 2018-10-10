@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -o errexit -o nounset
+
+DOCU_HOME="$(cd "$(dirname "$(which "$0")")"/.. >/dev/null; pwd -P)"/docurium
+
+install() {
+  bundler install --binstubs=bin/ --path vendor
+}
+
+generate() {
+  LLVM_CONFIG=llvm-config-3.8 bin/cm doc api.docurium
+}
+
+pushd "$DOCU_HOME"
+
+if [ ! -e bin/cm ]; then
+  install
+fi
+
+generate
+
+popd

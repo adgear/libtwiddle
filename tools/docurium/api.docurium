@@ -1,0 +1,9 @@
+{
+  "name":   "libtwiddle",
+  "github": "fsaintjacques/libtwiddle",
+  "input":  "include/twiddle",
+  "prefix": "tw_",
+  "branch": "gh-pages",
+  "examples": "tests/examples",
+  "versions": ["1.0.0"]
+}
